@@ -61,12 +61,14 @@ $$
 
 For \(n\) qubits, this produces:
 
+$$
 
 |+\rangle^{\otimes n}
 =
 \frac{1}{\sqrt{2^n}}
 \sum_{x\in\{0,1\}^n}|x\rangle
 
+$$
 
 Here, each computational basis state \(|x\rangle\) represents one possible configuration or solution of the optimization problem.
 
