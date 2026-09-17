@@ -91,6 +91,7 @@ The corresponding cost unitary is:
 $$
 U_C(\gamma)
 $$
+
 $$
 =
 e^{-i\gamma H_C}
