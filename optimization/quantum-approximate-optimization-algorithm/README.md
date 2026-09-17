@@ -138,7 +138,9 @@ For a single QAOA layer:
 
 $$
 |\psi(\gamma,\beta)\rangle
-=
+$$
+
+$$
 U_B(\beta)U_C(\gamma)
 |+\rangle^{\otimes n}
 $$
