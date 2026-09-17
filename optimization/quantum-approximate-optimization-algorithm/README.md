@@ -1,38 +1,55 @@
 # Quantum Approximate Optimization Algorithm (QAOA)
 
-The **Quantum Approximate Optimization Algorithm (QAOA)** is a **hybrid quantum-classical algorithm** designed to find approximate solutions to **combinatorial optimization problems**.
+The **Quantum Approximate Optimization Algorithm (QAOA)** is a **hybrid quantum-classical algorithm** used to find approximate solutions to **combinatorial optimization problems**.
 
-QAOA combines a **parameterized quantum circuit** with a **classical optimization algorithm**. The quantum circuit generates a probability distribution over possible solutions, while the classical optimizer adjusts the parameters of the circuit to increase the probability of obtaining high-quality solutions.
+The basic idea behind QAOA is to represent possible solutions as quantum states and use a parameterized quantum circuit to increase the probability of obtaining good solutions. A classical optimizer repeatedly adjusts the parameters of the quantum circuit based on the measured results.
+
+QAOA therefore combines:
+
+- **Quantum computation** to represent and explore possible solutions.
+- **Classical optimization** to determine suitable parameters for the quantum circuit.
 
 ---
 
 ## Core Idea
 
-Many combinatorial optimization problems involve finding the best solution from a large set of possible configurations.
+A combinatorial optimization problem generally involves finding the best solution from a large set of possible configurations.
 
-QAOA encodes these possible configurations into the computational basis states of a quantum system. It then uses two alternating quantum operations:
+For a problem with \(n\) binary variables,
+
+$$
+x_i \in \{0,1\}
+$$
+
+there can be up to
+
+$$
+2^n
+$$
+
+possible configurations.
+
+QAOA maps these possible configurations to the computational basis states of \(n\) qubits. It then uses two alternating quantum operations:
 
 - **Cost Hamiltonian** — represents the objective function of the optimization problem.
-- **Mixer Hamiltonian** — allows the quantum state to explore different possible configurations.
+- **Mixer Hamiltonian** — allows the quantum state to explore different configurations.
 
-The parameters controlling these operations are optimized using a classical computer.
+The parameters controlling these operations are optimized using a classical optimization algorithm.
 
-The general idea is:
+The overall idea is:
 
-> **Encode the optimization problem → explore solutions using a quantum circuit → evaluate the solutions → optimize the circuit parameters classically.**
+**Encode the problem → Apply quantum operations → Measure → Evaluate → Optimize parameters → Repeat**
 
 ---
 
-## Initial Quantum State
+## Initial State
 
-For a problem involving \(n\) binary variables, QAOA uses \(n\) qubits.
+For a problem involving \(n\) binary variables, \(n\) qubits are used.
 
 The qubits are initialized in the equal superposition state:
 
 $$
-
 |+\rangle^{\otimes n}
-
 $$
 
 where
@@ -42,7 +59,7 @@ $$
 \frac{|0\rangle + |1\rangle}{\sqrt{2}}
 $$
 
-This produces a superposition of all computational basis states:
+For \(n\) qubits, this produces:
 
 $$
 |+\rangle^{\otimes n}
@@ -51,7 +68,7 @@ $$
 \sum_{x\in\{0,1\}^n}|x\rangle
 $$
 
-where each \(x\) represents a possible solution to the optimization problem.
+Here, each computational basis state \(|x\rangle\) represents one possible configuration or solution of the optimization problem.
 
 ---
 
@@ -59,13 +76,13 @@ where each \(x\) represents a possible solution to the optimization problem.
 
 The **cost Hamiltonian \(H_C\)** encodes the objective function of the optimization problem.
 
-Each computational basis state \(|x\rangle\) corresponds to a possible solution, and the Hamiltonian assigns it a cost:
+Each computational basis state \(|x\rangle\) corresponds to a possible solution, and the cost Hamiltonian associates an objective value with that solution:
 
 $$
 H_C|x\rangle = C(x)|x\rangle
 $$
 
-where \(C(x)\) represents the objective or cost associated with solution \(x\).
+where \(C(x)\) represents the cost or objective value associated with solution \(x\).
 
 The corresponding cost unitary is:
 
@@ -77,7 +94,7 @@ $$
 
 where \(\gamma\) is a variational parameter.
 
-The cost layer modifies the **phase** of each state according to its objective value, allowing the optimization problem to influence the quantum state.
+The cost unitary applies a phase to each computational basis state according to its objective value. This encodes the optimization problem into the quantum state.
 
 ---
 
@@ -88,7 +105,7 @@ The **mixer Hamiltonian \(H_B\)** is used to explore different configurations in
 A commonly used mixer is:
 
 $$
-H_B = \sum_{i=1}^{n}X_i
+H_B = \sum_{i=1}^{n} X_i
 $$
 
 where \(X_i\) is the Pauli-X operator acting on qubit \(i\).
@@ -101,17 +118,17 @@ U_B(\beta)
 e^{-i\beta H_B}
 $$
 
-where \(\beta\) is a variational parameter.
+where \(\beta\) is another variational parameter.
 
-The mixer allows the quantum state to move between different computational basis states and explore alternative candidate solutions.
+The mixer causes transitions between computational basis states, allowing the quantum state to explore different candidate solutions.
 
 ---
 
-## QAOA Layers
+## QAOA Circuit
 
 QAOA alternates between the cost and mixer operations.
 
-For a single QAOA layer:
+For one QAOA layer:
 
 $$
 |\psi(\gamma,\beta)\rangle
@@ -120,7 +137,7 @@ U_B(\beta)U_C(\gamma)
 |+\rangle^{\otimes n}
 $$
 
-For \(p\) layers:
+For multiple layers, the cost and mixer operations are repeated:
 
 $$
 |\psi_p\rangle =
@@ -130,26 +147,30 @@ U_B(\beta_1)U_C(\gamma_1)
 |+\rangle^{\otimes n}
 $$
 
-The parameter set is therefore:
+The parameters are therefore:
 
 $$
-\{\gamma_1,\ldots,\gamma_p,
-\beta_1,\ldots,\beta_p\}
+\{\gamma_1,\gamma_2,\ldots,\gamma_p,
+\beta_1,\beta_2,\ldots,\beta_p\}
 $$
 
-The value of \(p\) is known as the **QAOA depth**.
+The number of alternating cost-mixer pairs is called the **QAOA depth**, represented by \(p\).
 
-A larger \(p\) provides more variational parameters and allows the circuit to represent more complex quantum states, but it also results in a deeper circuit and greater computational requirements.
+A larger value of \(p\) gives the circuit more parameters and greater flexibility in representing the desired quantum state, but also increases circuit depth and computational requirements.
 
 ---
 
 ## Parameter Optimization
 
-The parameters \(\gamma\) and \(\beta\) are determined through a **classical optimization loop**.
+The parameters \(\gamma\) and \(\beta\) are not fixed values. They are optimized using a classical optimization algorithm.
 
-For a particular set of parameters, the quantum circuit is executed and the resulting state is measured. The measurements are used to calculate the objective value. A classical optimizer then updates the parameters, and the process is repeated.
+For a particular set of parameters, the QAOA circuit is executed and measured. The measurement results are used to calculate the objective value.
 
-The objective is generally expressed through the expectation value:
+The classical optimizer then uses this information to update the parameters and produces a new set of values.
+
+This process is repeated until the parameters converge to a suitable solution.
+
+The expectation value of the cost Hamiltonian is:
 
 $$
 \langle H_C\rangle
@@ -159,29 +180,29 @@ H_C
 |\psi_p\rangle
 $$
 
-The parameters are optimized to maximize or minimize this expectation value, depending on how the optimization problem is formulated.
+The parameters are optimized to maximize or minimize this expectation value depending on the formulation of the optimization problem.
 
 ---
 
-## Hybrid Quantum-Classical Process
+## Hybrid Quantum-Classical Loop
 
-The complete QAOA procedure can be summarized as:
+The complete QAOA process can be represented as:
 
 ```text
-Initialize QAOA parameters
-          ↓
+Initialize parameters
+        ↓
 Prepare |+⟩⊗n
-          ↓
+        ↓
 Apply cost unitary
-          ↓
+        ↓
 Apply mixer unitary
-          ↓
-Measure the quantum state
-          ↓
-Evaluate the objective function
-          ↓
+        ↓
+Measure quantum state
+        ↓
+Calculate objective value
+        ↓
 Classical optimizer updates parameters
-          ↓
-Repeat until convergence
-          ↓
-Obtain high-quality candidate solutions
+        ↓
+Repeat
+        ↓
+Obtain candidate solutions
