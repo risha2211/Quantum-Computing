@@ -118,7 +118,9 @@ The corresponding mixer unitary is:
 
 $$
 U_B(\beta)
-=
+$$
+
+$$
 e^{-i\beta H_B}
 $$
 
