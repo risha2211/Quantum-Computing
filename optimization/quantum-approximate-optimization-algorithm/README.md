@@ -1,6 +1,6 @@
 # Quantum Approximate Optimization Algorithm (QAOA)
 
-The **Quantum Approximate Optimization Algorithm (QAOA)** is a **hybrid quantum-classical algorithm** designed to find approximate solutions to **combinatorial optimization problems**. It was introduced by Edward Farhi, Jeffrey Goldstone, and Sam Gutmann in 2014.
+The **Quantum Approximate Optimization Algorithm (QAOA)** is a **hybrid quantum-classical algorithm** designed to find approximate solutions to **combinatorial optimization problems**.
 
 QAOA combines a **parameterized quantum circuit** with a **classical optimization algorithm**. The quantum circuit generates a probability distribution over possible solutions, while the classical optimizer adjusts the parameters of the circuit to increase the probability of obtaining high-quality solutions.
 
