@@ -30,7 +30,9 @@ For a problem involving \(n\) binary variables, QAOA uses \(n\) qubits.
 The qubits are initialized in the equal superposition state:
 
 $$
+
 |+\rangle^{\otimes n}
+
 $$
 
 where
