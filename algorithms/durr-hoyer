@@ -1,0 +1,808 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOmSDWsm0cKxbLgsvnUb0TO",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/risha2211/Quantum-Computing/blob/main/algorithms/durr-hoyer\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Dürr–Høyer Minimum Finding\n",
+        "\n",
+        "## Problem Statement\n",
+        "\n",
+        "Given an **unsorted array of $N$ elements**, find the element having the minimum value.\n",
+        "\n",
+        "For example, for the array\n",
+        "\n",
+        "$$\n",
+        "A=[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "the minimum element is\n",
+        "\n",
+        "$$\n",
+        "\\boxed{1}\n",
+        "$$\n",
+        "\n",
+        "A classical minimum-finding algorithm generally examines all $N$ elements, giving a time complexity of $O(N)$.\n",
+        "\n",
+        "Durr-Hoyer Minimum Finding uses **quantum search and amplitude amplification** to find the minimum with an expected query complexity of\n",
+        "\n",
+        "$$\n",
+        "\\boxed{O(\\sqrt{N})}\n",
+        "$$\n",
+        "\n",
+        "for an unsorted set."
+      ],
+      "metadata": {
+        "id": "fv9ppVpCHddZ"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Main Idea\n",
+        "\n",
+        "The main idea of Durr-Hoyer Minimum Finding is to maintain a **current candidate minimum** and use quantum search to look for an element smaller than that candidate.\n",
+        "\n",
+        "Initially, any element can be selected as the candidate.\n",
+        "\n",
+        "For example, consider\n",
+        "\n",
+        "$$\n",
+        "A=[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "Suppose the initial candidate is $7$. The algorithm searches for elements satisfying\n",
+        "\n",
+        "$$\n",
+        "A_i < 7\n",
+        "$$\n",
+        "\n",
+        "The elements satisfying this condition are\n",
+        "\n",
+        "$$\n",
+        "[2,4,1,6,3]\n",
+        "$$\n",
+        "\n",
+        "If the quantum search finds $4$, the candidate is updated:\n",
+        "\n",
+        "$$\n",
+        "7\\rightarrow4\n",
+        "$$\n",
+        "\n",
+        "The search is then repeated for elements satisfying\n",
+        "\n",
+        "$$\n",
+        "A_i < 4\n",
+        "$$\n",
+        "\n",
+        "and the candidate may become $2$, followed by $1$.\n",
+        "\n",
+        "The basic process is:\n",
+        "\n",
+        "$$\n",
+        "\\boxed{\n",
+        "\\text{Choose Candidate}\n",
+        "\\rightarrow\n",
+        "\\text{Search for Smaller Element}\n",
+        "\\rightarrow\n",
+        "\\text{Update Candidate}\n",
+        "\\rightarrow\n",
+        "\\text{Repeat}\n",
+        "}\n",
+        "$$"
+      ],
+      "metadata": {
+        "id": "4UsKIJZeH0OH"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Classical View\n",
+        "\n",
+        "In classical minimum finding, the array is examined element by element.\n",
+        "\n",
+        "For\n",
+        "\n",
+        "$$\n",
+        "A=[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "we initially assume\n",
+        "\n",
+        "$$\n",
+        "\\text{min}=7\n",
+        "$$\n",
+        "\n",
+        "and compare the remaining elements with the current minimum. The candidate is updated whenever a smaller value is encountered:\n",
+        "\n",
+        "$$\n",
+        "7\\rightarrow2\\rightarrow1\n",
+        "$$\n",
+        "\n",
+        "Therefore, classical minimum finding requires\n",
+        "\n",
+        "$$\n",
+        "\\boxed{O(N)}\n",
+        "$$\n",
+        "\n",
+        "comparisons in the worst case.\n",
+        "\n",
+        "The quantum approach instead uses **amplitude amplification** to search for elements that can improve the current candidate."
+      ],
+      "metadata": {
+        "id": "rpTa_wovH3zo"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Quantum Representation\n",
+        "\n",
+        "The indices of the array are represented using quantum states.\n",
+        "\n",
+        "For $N$ elements, approximately\n",
+        "\n",
+        "$$\n",
+        "\\lceil\\log_2 N\\rceil\n",
+        "$$\n",
+        "\n",
+        "qubits are required to represent the indices.\n",
+        "\n",
+        "For\n",
+        "\n",
+        "$$\n",
+        "A=[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "there are $N=8$ elements, so\n",
+        "\n",
+        "$$\n",
+        "\\log_2 8=3\n",
+        "$$\n",
+        "\n",
+        "and three qubits are sufficient.\n",
+        "\n",
+        "The computational basis states represent the indices:\n",
+        "\n",
+        "$$\n",
+        "|000\\rangle\\rightarrow0\n",
+        "$$\n",
+        "\n",
+        "$$\n",
+        "|001\\rangle\\rightarrow1\n",
+        "$$\n",
+        "\n",
+        "$$\n",
+        "\\vdots\n",
+        "$$\n",
+        "\n",
+        "$$\n",
+        "|111\\rangle\\rightarrow7\n",
+        "$$\n",
+        "\n",
+        "The corresponding array value is obtained using the function\n",
+        "\n",
+        "$$\n",
+        "f(i)=A_i\n",
+        "$$\n",
+        "\n",
+        "The quantum search does not directly search for the numerical minimum. Instead, it searches for an **index whose value is smaller than the current candidate**."
+      ],
+      "metadata": {
+        "id": "N9f5UvxFH6YE"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Quantum Search for a Smaller Element\n",
+        "\n",
+        "Suppose the current candidate has value $m$.\n",
+        "\n",
+        "We define the search condition as\n",
+        "\n",
+        "$$\n",
+        "f(i)<m\n",
+        "$$\n",
+        "\n",
+        "An index satisfying this condition is considered a **marked state**.\n",
+        "\n",
+        "For example, if\n",
+        "\n",
+        "$$\n",
+        "m=7\n",
+        "$$\n",
+        "\n",
+        "for\n",
+        "\n",
+        "$$\n",
+        "A=[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "then the marked indices are\n",
+        "\n",
+        "$$\n",
+        "1,3,4,5,7\n",
+        "$$\n",
+        "\n",
+        "because their corresponding values are smaller than $7$.\n",
+        "\n",
+        "The oracle marks these states by applying a phase change. Amplitude amplification then increases the probability of measuring one of the marked indices."
+      ],
+      "metadata": {
+        "id": "X39OvylvH_Eb"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Updating the Candidate\n",
+        "\n",
+        "After the quantum search, an index is measured. The corresponding array value is then compared with the current candidate.\n",
+        "\n",
+        "If\n",
+        "\n",
+        "$$\n",
+        "A_i<m\n",
+        "$$\n",
+        "\n",
+        "the candidate is updated:\n",
+        "\n",
+        "$$\n",
+        "m\\leftarrow A_i\n",
+        "$$\n",
+        "\n",
+        "For example, the candidate may be updated as\n",
+        "\n",
+        "$$\n",
+        "7\\rightarrow4\\rightarrow2\\rightarrow1\n",
+        "$$\n",
+        "\n",
+        "If the measured element is not smaller than the candidate, the candidate remains unchanged and the search can be repeated.\n",
+        "\n",
+        "This adaptive updating is the key idea of the minimum-finding procedure."
+      ],
+      "metadata": {
+        "id": "EIW99u0zIOXQ"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Updating the Candidate\n",
+        "\n",
+        "After the quantum search, an index is measured. The corresponding array value is then compared with the current candidate.\n",
+        "\n",
+        "If\n",
+        "\n",
+        "$$\n",
+        "A_i<m\n",
+        "$$\n",
+        "\n",
+        "the candidate is updated:\n",
+        "\n",
+        "$$\n",
+        "m\\leftarrow A_i\n",
+        "$$\n",
+        "\n",
+        "For example, the candidate may be updated as\n",
+        "\n",
+        "$$\n",
+        "7\\rightarrow4\\rightarrow2\\rightarrow1\n",
+        "$$\n",
+        "\n",
+        "If the measured element is not smaller than the candidate, the candidate remains unchanged and the search can be repeated.\n",
+        "\n",
+        "This adaptive updating is the key idea of the minimum-finding procedure."
+      ],
+      "metadata": {
+        "id": "96Y36InWISd9"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Durr-Hoyer Procedure\n",
+        "\n",
+        "The complete procedure can be summarized as follows:\n",
+        "\n",
+        "1. Select an initial candidate.\n",
+        "2. Identify elements smaller than the candidate.\n",
+        "3. Construct a quantum oracle for these elements.\n",
+        "4. Apply amplitude amplification.\n",
+        "5. Measure an index.\n",
+        "6. Compare the corresponding value with the candidate.\n",
+        "7. If the value is smaller, update the candidate.\n",
+        "8. Repeat the process.\n",
+        "9. The final candidate represents the minimum.\n",
+        "\n",
+        "Thus,\n",
+        "\n",
+        "$$\n",
+        "\\boxed{\n",
+        "\\text{Initial Candidate}\n",
+        "\\rightarrow\n",
+        "\\text{Quantum Search}\n",
+        "\\rightarrow\n",
+        "\\text{Smaller Candidate}\n",
+        "\\rightarrow\n",
+        "\\text{Quantum Search}\n",
+        "\\rightarrow\n",
+        "\\text{Minimum}\n",
+        "}\n",
+        "$$"
+      ],
+      "metadata": {
+        "id": "1ZGvnQNqIWFF"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "import random\n",
+        "\n",
+        "from qiskit import QuantumCircuit\n",
+        "from qiskit.quantum_info import Statevector"
+      ],
+      "metadata": {
+        "id": "BmZ5dxvBIaVK"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Define the unsorted array\n",
+        "array = [7, 2, 9, 4, 1, 6, 8, 3]\n",
+        "\n",
+        "# Number of elements\n",
+        "N = len(array)\n",
+        "\n",
+        "# Number of qubits required to represent the indices\n",
+        "n_qubits = int(np.ceil(np.log2(N)))\n",
+        "\n",
+        "print(\"Array:\", array)\n",
+        "print(\"Number of elements:\", N)\n",
+        "print(\"Number of index qubits:\", n_qubits)"
+      ],
+      "metadata": {
+        "id": "WgzxSEO2IeaH"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Create the Quantum Oracle"
+      ],
+      "metadata": {
+        "id": "ErEi2wSMIode"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def create_oracle(array, candidate):\n",
+        "\n",
+        "    N = len(array)\n",
+        "    n = int(np.ceil(np.log2(N)))\n",
+        "\n",
+        "    # Identify indices whose values are smaller than the candidate\n",
+        "    marked_states = [\n",
+        "        i for i in range(N)\n",
+        "        if array[i] < candidate\n",
+        "    ]\n",
+        "\n",
+        "    # Start with an identity matrix\n",
+        "    oracle_matrix = np.eye(2**n, dtype=complex)\n",
+        "\n",
+        "    # Apply a phase flip to marked states\n",
+        "    for i in marked_states:\n",
+        "        oracle_matrix[i, i] = -1\n",
+        "\n",
+        "    # Create the quantum oracle\n",
+        "    oracle = QuantumCircuit(n)\n",
+        "\n",
+        "    oracle.unitary(\n",
+        "        oracle_matrix,\n",
+        "        range(n),\n",
+        "        label=\"Oracle\"\n",
+        "    )\n",
+        "\n",
+        "    return oracle, marked_states"
+      ],
+      "metadata": {
+        "id": "RVbnPUKZIjKE"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Create the Diffuser\n"
+      ],
+      "metadata": {
+        "id": "zeqL_0tQIryV"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def create_diffuser(n):\n",
+        "\n",
+        "    diffuser = QuantumCircuit(n)\n",
+        "\n",
+        "    # Create equal superposition\n",
+        "    diffuser.h(range(n))\n",
+        "\n",
+        "    # Transform the |000...0> state\n",
+        "    diffuser.x(range(n))\n",
+        "\n",
+        "    # Apply multi-controlled phase flip\n",
+        "    diffuser.h(n - 1)\n",
+        "    diffuser.mcx(list(range(n - 1)), n - 1)\n",
+        "    diffuser.h(n - 1)\n",
+        "\n",
+        "    diffuser.x(range(n))\n",
+        "    diffuser.h(range(n))\n",
+        "\n",
+        "    return diffuser"
+      ],
+      "metadata": {
+        "id": "I0oqBc67Iszf"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Quantum Search\n"
+      ],
+      "metadata": {
+        "id": "Pfr1xMi9IzME"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def quantum_search(array, candidate):\n",
+        "\n",
+        "    N = len(array)\n",
+        "    n = int(np.ceil(np.log2(N)))\n",
+        "\n",
+        "    # Create the oracle\n",
+        "    oracle, marked_states = create_oracle(array, candidate)\n",
+        "\n",
+        "    # If there are no smaller elements, return failure\n",
+        "    if len(marked_states) == 0:\n",
+        "        return None\n",
+        "\n",
+        "    # Create the quantum circuit\n",
+        "    qc = QuantumCircuit(n)\n",
+        "\n",
+        "    # Put index qubits into equal superposition\n",
+        "    qc.h(range(n))\n",
+        "\n",
+        "    # Number of marked states\n",
+        "    M = len(marked_states)\n",
+        "\n",
+        "    # Approximate number of amplitude amplification iterations\n",
+        "    iterations = max(\n",
+        "        1,\n",
+        "        int(np.floor((np.pi / 4) * np.sqrt(N / M)))\n",
+        "    )\n",
+        "\n",
+        "    diffuser = create_diffuser(n)\n",
+        "\n",
+        "    # Apply amplitude amplification\n",
+        "    for _ in range(iterations):\n",
+        "        qc.compose(oracle, inplace=True)\n",
+        "        qc.compose(diffuser, inplace=True)\n",
+        "\n",
+        "    # Obtain the final quantum state\n",
+        "    state = Statevector.from_instruction(qc)\n",
+        "\n",
+        "    # Obtain measurement probabilities\n",
+        "    probabilities = state.probabilities()\n",
+        "\n",
+        "    # Sample one state according to its probability\n",
+        "    measured_index = np.random.choice(\n",
+        "        range(2**n),\n",
+        "        p=probabilities\n",
+        "    )\n",
+        "\n",
+        "    # Ignore states outside the actual array\n",
+        "    if measured_index >= N:\n",
+        "        return None\n",
+        "\n",
+        "    return measured_index"
+      ],
+      "metadata": {
+        "id": "lhla4y32Izv5"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Durr-Hoyer Minimum Finding\n"
+      ],
+      "metadata": {
+        "id": "0vqNJ5FII3i1"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def durr_hoyer_minimum(array, repetitions=20):\n",
+        "\n",
+        "    N = len(array)\n",
+        "\n",
+        "    # Select an initial candidate randomly\n",
+        "    candidate_index = random.randrange(N)\n",
+        "    candidate_value = array[candidate_index]\n",
+        "\n",
+        "    print(\"Initial candidate:\", candidate_value)\n",
+        "\n",
+        "    # Repeat the quantum search\n",
+        "    for iteration in range(repetitions):\n",
+        "\n",
+        "        # Search for an element smaller than the candidate\n",
+        "        new_index = quantum_search(\n",
+        "            array,\n",
+        "            candidate_value\n",
+        "        )\n",
+        "\n",
+        "        # No smaller element was found\n",
+        "        if new_index is None:\n",
+        "            continue\n",
+        "\n",
+        "        new_value = array[new_index]\n",
+        "\n",
+        "        # Update candidate if a smaller value is found\n",
+        "        if new_value < candidate_value:\n",
+        "\n",
+        "            print(\n",
+        "                f\"Iteration {iteration + 1}: \"\n",
+        "                f\"{candidate_value} -> {new_value}\"\n",
+        "            )\n",
+        "\n",
+        "            candidate_index = new_index\n",
+        "            candidate_value = new_value\n",
+        "\n",
+        "    return candidate_index, candidate_value"
+      ],
+      "metadata": {
+        "id": "MBB1JKMuI6eP"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Set seeds for reproducibility\n",
+        "random.seed(42)\n",
+        "np.random.seed(42)\n",
+        "\n",
+        "# Run Durr-Hoyer Minimum Finding\n",
+        "minimum_index, minimum_value = durr_hoyer_minimum(\n",
+        "    array,\n",
+        "    repetitions=20\n",
+        ")\n",
+        "\n",
+        "print(\"\\nFinal Result\")\n",
+        "print(\"Minimum index:\", minimum_index)\n",
+        "print(\"Minimum value:\", minimum_value)"
+      ],
+      "metadata": {
+        "id": "37iht9XmI9Y_"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Expected Output\n",
+        "\n",
+        "The exact intermediate candidate sequence can vary because the quantum search is probabilistic. However, the final result should identify the minimum value as\n",
+        "\n",
+        "$$\n",
+        "\\boxed{1}\n",
+        "$$\n",
+        "\n",
+        "For the given array, the minimum occurs at index $4$."
+      ],
+      "metadata": {
+        "id": "km4p0AmiJEYe"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Observation\n",
+        "\n",
+        "The experiment demonstrates how Durr-Hoyer Minimum Finding uses **quantum search and amplitude amplification to search for elements smaller than a current candidate**.\n",
+        "\n",
+        "For the given array,\n",
+        "\n",
+        "$$\n",
+        "[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "the candidate is progressively improved until the minimum value\n",
+        "\n",
+        "$$\n",
+        "\\boxed{1}\n",
+        "$$\n",
+        "\n",
+        "is obtained.\n",
+        "\n",
+        "The expected quantum query complexity of the algorithm is\n",
+        "\n",
+        "$$\n",
+        "\\boxed{O(\\sqrt{N})}\n",
+        "$$\n",
+        "\n",
+        "compared with\n",
+        "\n",
+        "$$\n",
+        "\\boxed{O(N)}\n",
+        "$$\n",
+        "\n",
+        "for classical minimum finding.\n",
+        "\n",
+        "Since the quantum search is probabilistic, different executions may produce different intermediate candidate sequences."
+      ],
+      "metadata": {
+        "id": "HJudEvt1JE8X"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Extension: From Minimum Finding to Quantum Sort\n",
+        "\n",
+        "Durr-Hoyer Minimum Finding can be used as the basic operation for a quantum sorting approach.\n",
+        "\n",
+        "After finding the minimum of the complete array, that element is placed in its correct position. The same minimum-finding procedure is then applied to the remaining unsorted elements.\n",
+        "\n",
+        "For example,\n",
+        "\n",
+        "$$\n",
+        "[7,2,9,4,1,6,8,3]\n",
+        "$$\n",
+        "\n",
+        "can be processed through repeated minimum finding:\n",
+        "\n",
+        "$$\n",
+        "1\\rightarrow2\\rightarrow3\\rightarrow4\\rightarrow6\\rightarrow7\\rightarrow8\\rightarrow9\n",
+        "$$\n",
+        "\n",
+        "giving the sorted array\n",
+        "\n",
+        "$$\n",
+        "[1,2,3,4,6,7,8,9]\n",
+        "$$\n",
+        "\n",
+        "Therefore,\n",
+        "\n",
+        "$$\n",
+        "\\boxed{\n",
+        "\\text{Quantum Minimum Finding}\n",
+        "\\rightarrow\n",
+        "\\text{Repeated Minimum Finding}\n",
+        "\\rightarrow\n",
+        "\\text{Sorted Array}\n",
+        "}\n",
+        "$$\n",
+        "\n",
+        "This shows how repeated application of Durr-Hoyer Minimum Finding can form the basis of a **quantum sorting approach**, without requiring a separate Quantum Sort implementation."
+      ],
+      "metadata": {
+        "id": "JVReeW79JKtx"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def quantum_sort(arr):\n",
+        "\n",
+        "    # Make a copy so the original array is not modified\n",
+        "    arr = arr.copy()\n",
+        "\n",
+        "    n = len(arr)\n",
+        "\n",
+        "    # Repeatedly find the minimum of the unsorted portion\n",
+        "    for i in range(n):\n",
+        "\n",
+        "        remaining = arr[i:]\n",
+        "\n",
+        "        # Apply quantum minimum finding\n",
+        "        rel_index, rel_value = durr_hoyer_minimum(\n",
+        "            remaining\n",
+        "        )\n",
+        "\n",
+        "        # Convert relative index to actual index\n",
+        "        actual_index = i + rel_index\n",
+        "\n",
+        "        # Place the minimum element at position i\n",
+        "        arr[i], arr[actual_index] = (\n",
+        "            arr[actual_index],\n",
+        "            arr[i]\n",
+        "        )\n",
+        "\n",
+        "    return arr"
+      ],
+      "metadata": {
+        "id": "VY95HJNNJskS"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Example array\n",
+        "data = [8, 3, 9, 1, 6, 4, 7, 2]\n",
+        "\n",
+        "# Perform quantum sort\n",
+        "sorted_array = quantum_sort(data)\n",
+        "\n",
+        "print(\"Original array:\", data)\n",
+        "print(\"Sorted array:\", sorted_array)"
+      ],
+      "metadata": {
+        "id": "Q0W2fqVMJv4P"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Conclusion\n",
+        "\n",
+        "Durr-Hoyer Minimum Finding was studied and implemented to find the minimum element of an unsorted array. The algorithm was understood through the use of a current candidate, a quantum oracle, and amplitude amplification to search for smaller elements. The candidate is repeatedly updated until the minimum value is obtained.\n",
+        "\n",
+        "The experiment also demonstrated how repeated application of the minimum-finding procedure can be extended to form the basis of a quantum sorting approach."
+      ],
+      "metadata": {
+        "id": "uzXwtTHEJzvu"
+      }
+    }
+  ]
+}
