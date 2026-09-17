@@ -182,7 +182,9 @@ The expectation value of the cost Hamiltonian is:
 
 $$
 \langle H_C\rangle
-=
+$$
+
+$$
 \langle\psi_p|
 H_C
 |\psi_p\rangle
