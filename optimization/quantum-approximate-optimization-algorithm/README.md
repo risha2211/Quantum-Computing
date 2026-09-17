@@ -93,7 +93,6 @@ U_C(\gamma)
 $$
 
 $$
-=
 e^{-i\gamma H_C}
 $$
 
